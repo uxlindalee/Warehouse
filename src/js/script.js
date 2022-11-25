@@ -30,9 +30,9 @@ window.dataCallback = function (data) {
 	// setTimeout(getData,50)
 };
 
+window.warehouseDataGenerator.getData();
+
 //Group
-const boxGroup = new THREE.Group();
-scene.add(boxGroup);
 
 // Axes Helper
 const axesHelper = new THREE.AxesHelper(5);
@@ -42,41 +42,63 @@ scene.add(axesHelper);
 
 let boxSizes = warehouseJson.sizes;
 let boxRacks = warehouseJson.racks;
-let boxShuttles = warehouseJson.shuttles;
+let shuttle = boxSizes.shuttle;
+let elevator = boxSizes.elevator;
 let boxInfos = warehouseJson.box_infos;
 
 let positionX = 0;
 let positionY = 0;
 let positionZ = 0;
 
-// Object
-const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-const boxMaterial = new THREE.MeshBasicMaterial({
-	color: "#ff0000",
-	transparent: true,
-	opacity: 0.5,
-});
-const box = new THREE.Mesh(boxGeometry, boxMaterial);
+const buildWarehouse = function (d, h, w, x, y, z) {
+	const boxGroup = new THREE.Group();
 
-const wireframe = new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry), new THREE.LineBasicMaterial({ color: "#bbb", linewidth: 10 }));
-wireframe.renderOrder = 1;
-box.add(wireframe);
-box.opacity = 0.5;
-box.castShadow = true;
-boxGroup.add(box);
+	// boxGroup.position.set(-5.8, 0, -1.15);
+	// boxGeometry.computeBoundingBox();
 
-for (let h = 0; h < boxSizes.height.length; h++) {
-	positionY += boxSizes.height[h] * 0.0001 + 0.7;
-	// positionZ = h > 0 ? (positionZ = boxShuttles.width + boxSizes.depth[h] / 2) : -(boxShuttles.width + boxSizes.depth[h] / 2);
-	for (let i = 0; i < boxSizes.width.length; i++) {
-		console.log(positionX);
-		box.scale.set(boxSizes.width[i] * 0.001, boxSizes.height[0] * 0.001, boxSizes.depth[0] * 0.001);
+	scene.add(boxGroup);
 
-		// box.position.set(0, 0, 0);
-		box.position.set(positionX, positionY, 0);
-		positionX += boxSizes.width[i] * 0.0001;
-		boxGroup.add(box);
+	const boxGeometry = new THREE.BoxGeometry(w, h, d);
+	const boxMaterial = new THREE.MeshBasicMaterial({
+		color: "#ffffff",
+		transparent: true,
+		opacity: 0.5,
+	});
+	const box = new THREE.Mesh(boxGeometry, boxMaterial);
+	const wireframe = new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry), new THREE.LineBasicMaterial({ color: "#bbb", linewidth: 10 }));
+	wireframe.renderOrder = 1;
+	box.add(wireframe);
+	box.opacity = 0.5;
+	box.castShadow = true;
+	box.position.set(x, y, z);
+	boxGroup.add(box);
+};
+
+//Elevator
+buildWarehouse(elevator.depth * 0.001, elevator.height * 0.001, elevator.width * 0.001, -(elevator.width * 0.001) / 2, (elevator.height * 0.001) / 2, 0);
+// buildWarehouse(elevator.depth * 0.001, elevator.height * 0.001, elevator.width * 0.001, 0, 0, 0);
+
+//Shuttle
+buildWarehouse(shuttle.depth * 0.001, shuttle.height * 0.001, shuttle.width * 0.001, -(shuttle.width * 0.001) / 2, (shuttle.height * 0.001) / 2, 0);
+
+//Containers in rack
+for (let k = 0; k < boxSizes.depth.length; k++) {
+	for (let j = 0; j < boxSizes.height.length; j++) {
+		for (let i = 0; i < boxSizes.width.length; i++) {
+			if (i !== 0) {
+				positionX += boxSizes.width[i] * 0.001 + 0.05;
+			}
+			const boxW = boxSizes.width[i] * 0.001;
+			const boxH = boxSizes.height[j] * 0.001;
+			const boxD = boxSizes.depth[k] * 0.001;
+
+			buildWarehouse(boxD, boxH, boxW, positionX - (boxSizes.width[i] * 0.001) / 2, positionY + (boxSizes.height[j] * 0.001) / 2, positionZ - (boxSizes.depth[k] * 0.001) / 2);
+		}
+		positionX = 0;
+		positionY += boxSizes.height[j] * 0.001 + 0.05;
 	}
+	positionY = 0;
+	positionZ += boxSizes.depth[k] * 0.001 * 2 + shuttle.width * 0.001;
 }
 
 // Light
@@ -109,8 +131,8 @@ window.addEventListener("resize", () => {
 });
 
 // Camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
-camera.position.set(10, 5, -10);
+const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 1000);
+camera.position.set(-20, 10, 20);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
