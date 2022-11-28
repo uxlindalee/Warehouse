@@ -2,18 +2,18 @@ import * as THREE from "../../lib/three.module.js";
 import { OrbitControls } from "../../lib/OrbitControls.js";
 import warehouseJson from "../../src/json/warehouse.json" assert { type: "json" };
 
-
 // Loader
-const loader = new THREE.FileLoader();
-loader.load("../../src/json/warehouse.json", function getData() {
+let warehouseData;
+
+function getData() {
 	if (window.warehouseDataGenerator) {
 		warehouseDataGenerator.getData();
 	}
-});
+}
 window.dataCallback = function (data) {
 	if (data) {
-		let warehouse = data.warehouse;
-		let shuttle = data.shuttle;
+		warehouseData = data;
+		getBoxes();
 	}
 	// setTimeout(getData,50)
 };
@@ -39,13 +39,12 @@ scene.add(ambientLight);
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
 
-
 // Object
-let boxSizes = warehouseJson.sizes;
+let json = warehouseJson.sizes;
 let boxRacks = warehouseJson.racks;
-let shuttle = boxSizes.shuttle;
-let elevator = boxSizes.elevator;
-let boxInfos = warehouseJson.box_infos;
+let shuttle = json.shuttle;
+let elevator = json.elevator;
+let boxGap = 0.05;
 
 let positionX = 0;
 let positionY = 0;
@@ -53,9 +52,7 @@ let positionZ = 0;
 
 const buildWarehouse = function (d, h, w, x, y, z) {
 	const boxGroup = new THREE.Group();
-
-	boxGroup.position.set(boxSizes.width.length * -1, 0, (boxSizes.depth.length + elevator.width * 0.001/2) * -0.3);
-
+	boxGroup.position.set(json.width.length * -1, 0, (json.depth.length + (elevator.width * 0.001) / 2) * -0.3);
 	scene.add(boxGroup);
 
 	const boxGeometry = new THREE.BoxGeometry(w, h, d);
@@ -72,105 +69,107 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 	box.castShadow = true;
 	box.position.set(x, y, z);
 	boxGroup.add(box);
-};
 
+	// const tag = document.createElement('.text-label');
+	const map = new THREE.TextureLoader().load("../src/images/tag.png");
+	const material = new THREE.SpriteMaterial({ map: map });
+	const sprite = new THREE.Sprite(material);
+
+	sprite.scale.set(0.5, 0.5, 0.5);
+	sprite.position.set(x, json.height.length, z);
+	boxGroup.add(sprite);
+};
 
 //Elevator
 buildWarehouse(
-	elevator.depth * 0.001, 
-	elevator.height * 0.001, 
-	elevator.width * 0.001, 
-	-(boxSizes.width[0] * 0.001 + (elevator.width * 0.001) / 2),
-	(elevator.height * 0.001) / 2, 
+	elevator.depth * 0.001,
+	elevator.height * 0.001,
+	elevator.width * 0.001,
+	-(json.width[0] * 0.001 + (elevator.width * 0.001) / 2),
+	(elevator.height * 0.001) / 2,
 	(elevator.width * 0.001) / 2 + 0.15
 );
 
 //Shuttle
 buildWarehouse(
-	shuttle.depth * 0.001, 
-	shuttle.height * 0.001, 
-	shuttle.width * 0.001, 
-	-(boxSizes.width[0] * 0.001 + (elevator.width * 0.001) / 2),
+	shuttle.depth * 0.001,
+	shuttle.height * 0.001,
+	shuttle.width * 0.001,
+	-(json.width[0] * 0.001 + (elevator.width * 0.001) / 2),
 	(shuttle.height * 0.001) / 2,
 	(elevator.width * 0.001) / 2 + 0.15
 );
 
 //Containers in rack
-for (let k = 0; k < boxSizes.depth.length; k++) {
-	for (let j = 0; j < boxSizes.height.length; j++) {
-		for (let i = 0; i < boxSizes.width.length; i++) {
+for (let k = 0; k < json.depth.length; k++) {
+	for (let j = 0; j < json.height.length; j++) {
+		for (let i = 0; i < json.width.length; i++) {
 			if (i !== 0) {
-				positionX += boxSizes.width[i] * 0.001 + 0.05;
+				positionX += json.width[i] * 0.001 + boxGap;
 			}
-			const boxW = boxSizes.width[i] * 0.001;
-			const boxH = boxSizes.height[j] * 0.001;
-			const boxD = boxSizes.depth[k] * 0.001;
-
-			buildWarehouse(boxD, boxH, boxW, positionX - (boxSizes.width[i] * 0.001) / 2, positionY + (boxSizes.height[j] * 0.001) / 2, positionZ - (boxSizes.depth[k] * 0.001) / 2);
+			const boxW = json.width[i] * 0.001;
+			const boxH = json.height[j] * 0.001;
+			const boxD = json.depth[k] * 0.001;
+			buildWarehouse(boxD, boxH, boxW, positionX - (json.width[i] * 0.001) / 2, positionY + (json.height[j] * 0.001) / 2, positionZ - (json.depth[k] * 0.001) / 2);
 		}
 		positionX = 0;
-		positionY += boxSizes.height[j] * 0.001 + 0.05;
+		positionY += json.height[j] * 0.001 + boxGap;
 	}
 	positionY = 0;
-	positionZ += boxSizes.depth[k] * 0.001 * 2 + shuttle.width * 0.001;
+	positionZ += json.depth[k] * 0.001 * 2 + shuttle.width * 0.001;
 }
 
+//Colored Boxes
+const createBox = function (w, h, d, x, y, z, color, name) {
+	console.log(x);
+	const colorBoxes = new THREE.Group();
+	scene.add(colorBoxes);
 
+	const item = new THREE.Mesh(
+		new THREE.BoxGeometry(w, h, d),
+		new THREE.MeshStandardMaterial({
+			color: `#${color}`,
+		})
+	);
 
-// const setBoxes = function () {
-// 	let boxInfos = warehouseJson.box_infos;
+	item.position.set(x, y, z);
+	item.name = name;
+	colorBoxes.add(item);
+	return item;
+};
 
-// 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
-// 		const box = warehouseData.warehouse[i];
-// 		const boxInfo = boxInfos.find(item => item.type === box.box_type);
-// 		const boxIdArr = box.id.split('-');
-// 		const matchRack = warehouseRacks.find(item => item.ids === box.id.substring(0, 5));
-		
-// 		if ( boxInfo ) {
-// 			// ~~~~~~~~~~~~~~~~~~~ 이거 맞을까.......?............. 
-// 			if ( 'double' in boxInfo ) {
-// 				const boxMesh = [
-// 					createBox(
-// 						boxInfo.width/1000,
-// 						boxInfo.height/1000,
-// 						boxInfo.depth/1000,
-// 						matchRack.position.x - matchRack.geometry.parameters.width/2 + boxInfo.width/1000/2 + 0.15 + (boxIdArr[3]-1)*0.5, 
-// 						matchRack.position.y - matchRack.geometry.parameters.height/2 + boxInfo.height/1000/2,
-// 						matchRack.position.z - boxInfo.depth/1000/2 - 0.04,
-// 						boxInfo.color,
-// 						boxInfo.name,
-// 					),
-// 					createBox(
-// 						boxInfo.width/1000,
-// 						boxInfo.height/1000,
-// 						boxInfo.depth/1000,
-// 						matchRack.position.x - matchRack.geometry.parameters.width/2 + boxInfo.width/1000/2 + 0.15 + (boxIdArr[3]-1)*0.5, 
-// 						matchRack.position.y - matchRack.geometry.parameters.height/2 + boxInfo.height/1000/2,
-// 						matchRack.position.z + boxInfo.depth/1000/2 + 0.04,
-// 						boxInfo.color,
-// 						boxInfo.name,
-// 					)
-// 				]
-// 				warehouseBoxs.push(boxMesh);
-// 			} else {
-// 				const boxMesh = createBox(
-// 					boxInfo.width/1000,
-// 					boxInfo.height/1000,
-// 					boxInfo.depth/1000,
-// 					matchRack.position.x - matchRack.geometry.parameters.width/2 + boxInfo.width/1000/2 + 0.15 + (boxIdArr[3]-1)*0.5, 
-// 					matchRack.position.y - matchRack.geometry.parameters.height/2 + boxInfo.height/1000/2,
-// 					matchRack.position.z,
-// 					boxInfo.color,
-// 					boxInfo.name,
-// 				)
-// 				warehouseBoxs.push(boxMesh);
-// 			}
-// 		}
-// 	}
-// }
+const getBoxes = function () {
+	let boxInfos = warehouseJson.box_infos; //5
 
+	// createBox(boxInfos[0].width * 0.001, boxInfos[0].height * 0.001, boxInfos[0].depth * 0.001, 0, 0, 0, boxInfos[0].color, boxInfos[0].name);
 
+	for (let i = 0; i < warehouseData.warehouse.length; i++) {
+		const warehouseItem = warehouseData.warehouse[i];
+		const matchingInfo = boxInfos.find((item) => item.type === warehouseItem.box_type);
+		let floor, rack, direction, number;
 
+		if (matchingInfo) {
+			const idSplit = warehouseItem.id.split("-");
+			floor = idSplit[0];
+			rack = idSplit[1];
+			direction = idSplit[2];
+			number = idSplit[3];
+			console.log(floor, rack, direction, number);
+
+			let rackX = warehouseJson.sizes.width;
+			let totalW = rackX.reduce((a, b) => a + b, 0);
+			console.log(totalW);
+
+			createBox(matchingInfo.width * 0.001, matchingInfo.height * 0.001, matchingInfo.depth * 0.001, (totalW * 0.001) / 6, (floor * 0.001) / 2, number, matchingInfo.color, matchingInfo.name);
+		}
+
+		// if (warehouseItem.dir === "L") {
+		// 	console.log("left");
+		// } else {
+		// 	console.log("right");
+		// }
+	}
+};
 
 window.addEventListener("resize", () => {
 	// Update sizes
@@ -194,12 +193,10 @@ camera.lookAt(0, 0, 0);
 // Controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-
-
-
-
-
-
+controls.enablePan = false; // controls off
+controls.enableKeys = false;
+controls.minZoom = 0;
+controls.maxZoom = 2;
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
@@ -210,6 +207,7 @@ renderer.setClearColor("#d0d0d0");
 
 function animate() {
 	requestAnimationFrame(animate);
+	// scene.rotation.y += 0.005;
 
 	// required if controls.enableDamping or controls.autoRotate are set to true
 	controls.update();

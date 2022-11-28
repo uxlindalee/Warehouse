@@ -18,9 +18,40 @@ body {
 .title {
   position: absolute;
   top: 1em;
-
-
-  
-  left: 1em;
+  left: 50%;
+  z-index: 2;
   font-size: 20px;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+}
+
+.text-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  padding: 6px 15px 3px;
+  pointer-events: none;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.9);
+  -webkit-box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+.text-label::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  display: block;
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.9);
+  -webkit-box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+  -webkit-transform: translateX(-50%) rotate(45deg);
+          transform: translateX(-50%) rotate(45deg);
 }
