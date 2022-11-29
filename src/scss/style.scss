@@ -31,12 +31,13 @@ body {
 	z-index: 2;
 	padding: 6px 15px 3px;
 	pointer-events: none;
-	font-size: 1.2rem;
+	font-size: 1rem;
 	font-weight: 700;
 	color: #fff;
 	background-color: rgba(0, 0, 0, 0.9);
 	box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
 	border-radius: 5px;
+
 	&::after {
 		content: "";
 		position: absolute;

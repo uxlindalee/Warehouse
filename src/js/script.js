@@ -1,9 +1,12 @@
 import * as THREE from "../../lib/three.module.js";
 import { OrbitControls } from "../../lib/OrbitControls.js";
+import { CSS2DRenderer, CSS2DObject } from "../../lib/CSS2DRenderer.js";
 import warehouseJson from "../../src/json/warehouse.json" assert { type: "json" };
 
 // Loader
 let warehouseData;
+let warehouseRacks = [];
+let labelRenderer;
 
 function getData() {
 	if (window.warehouseDataGenerator) {
@@ -32,8 +35,18 @@ const sizes = {
 };
 
 // Light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
+
+const light = new THREE.DirectionalLight(0xffffff, 0.3);
+light.position.set(0, 10, 0);
+light.castShadow = true;
+light.shadow.mapSize.width = 2048;
+light.shadow.mapSize.height = 2048;
+light.shadow.radius = 0;
+light.shadow.camera.near = 0.1;
+light.shadow.camera.far = 100;
+scene.add(light);
 
 // Axes Helper
 const axesHelper = new THREE.AxesHelper(5);
@@ -70,7 +83,18 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 	box.position.set(x, y, z);
 	boxGroup.add(box);
 
-	// const tag = document.createElement('.text-label');
+	const tag = document.createElement("p");
+	tag.className = "text-label";
+	tag.textContent = "1";
+	// for (let i = 0; i <= 6; i++) {
+	// 	tag.textContent = i;
+	// 	console.log(i);
+	// }
+
+	const tagLabel = new CSS2DObject(tag);
+	tagLabel.position.set(x, json.height.length, z);
+	boxGroup.add(tagLabel);
+
 	const map = new THREE.TextureLoader().load("../src/images/tag.png");
 	const material = new THREE.SpriteMaterial({ map: map });
 	const sprite = new THREE.Sprite(material);
@@ -121,8 +145,9 @@ for (let k = 0; k < json.depth.length; k++) {
 
 //Colored Boxes
 const createBox = function (w, h, d, x, y, z, color, name) {
-	console.log(x);
 	const colorBoxes = new THREE.Group();
+	colorBoxes.position.set(json.width.length * -1.75, y / 2 + h / 2, 0);
+	// colorBoxes.position.set(x, y, z);
 	scene.add(colorBoxes);
 
 	const item = new THREE.Mesh(
@@ -140,15 +165,31 @@ const createBox = function (w, h, d, x, y, z, color, name) {
 
 const getBoxes = function () {
 	let boxInfos = warehouseJson.box_infos; //5
+	let warehouseRacks = [];
+	let warehouseBoxes = [];
 
-	// createBox(boxInfos[0].width * 0.001, boxInfos[0].height * 0.001, boxInfos[0].depth * 0.001, 0, 0, 0, boxInfos[0].color, boxInfos[0].name);
+	// createBox(boxInfos[0].width * 0.001, boxInfos[0].height * 0.001, boxInfos[0].depth * 0.001, boxInfos[0].width * -0.005, (boxInfos[0].height * 0.001) / 2, 0, boxInfos[0].color, boxInfos[0].name);
+	// createBox(
+	// 	boxInfos[1].width * 0.001,
+	// 	boxInfos[1].height * 0.001,
+	// 	boxInfos[1].depth * 0.001,
+	// 	boxInfos[1].width * -0.003,
+	// 	(boxInfos[1].height * 0.001) / 2,
+	// 	(boxInfos[1].depth * 0.001) / 2,
+	// 	boxInfos[1].color,
+	// 	boxInfos[1].name
+	// );
+	// createBox(boxInfos[2].width * 0.001, boxInfos[2].height * 0.001, boxInfos[2].depth * 0.001, boxInfos[2].width * 0.001, (boxInfos[2].height * 0.001) / 2, 0, boxInfos[2].color, boxInfos[2].name);
+	// createBox(boxInfos[3].width * 0.001, boxInfos[3].height * 0.001, boxInfos[3].depth * 0.001, boxInfos[3].width * 0.003, (boxInfos[3].height * 0.001) / 2, 0, boxInfos[3].color, boxInfos[3].name);
+	// createBox(boxInfos[4].width * 0.001, boxInfos[4].height * 0.001, boxInfos[4].depth * 0.001, boxInfos[4].width * 0.005, (boxInfos[4].height * 0.001) / 2, 0, boxInfos[4].color, boxInfos[4].name);
 
 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
 		const warehouseItem = warehouseData.warehouse[i];
-		const matchingInfo = boxInfos.find((item) => item.type === warehouseItem.box_type);
+		const matchingBox = boxInfos.find((item) => item.type === warehouseItem.box_type);
 		let floor, rack, direction, number;
+		let moveX, moveY, moveZ;
 
-		if (matchingInfo) {
+		if (matchingBox) {
 			const idSplit = warehouseItem.id.split("-");
 			floor = idSplit[0];
 			rack = idSplit[1];
@@ -156,18 +197,22 @@ const getBoxes = function () {
 			number = idSplit[3];
 			console.log(floor, rack, direction, number);
 
-			let rackX = warehouseJson.sizes.width;
-			let totalW = rackX.reduce((a, b) => a + b, 0);
-			console.log(totalW);
+			let moveX = (json.width.reduce((a, b) => a + b, 0) / json.width.length) * rack * 0.001;
+			let moveY = (json.height.reduce((a, b) => a + b, 0) / json.height.length) * floor - json.height[0];
+			let moveZ = direction === "L" ? -((json.depth[0] * 0.001) / 2 + (elevator.width * 0.001) / 2 + boxGap * 2) : (json.depth[0] * 0.001) / 2 + (elevator.width * 0.001) / 2 + boxGap * 2;
 
-			createBox(matchingInfo.width * 0.001, matchingInfo.height * 0.001, matchingInfo.depth * 0.001, (totalW * 0.001) / 6, (floor * 0.001) / 2, number, matchingInfo.color, matchingInfo.name);
+			createBox(matchingBox.width * 0.001, matchingBox.height * 0.001, matchingBox.depth * 0.001, moveX + number / 5 + boxGap, moveY * 0.001, moveZ, matchingBox.color, matchingBox.name);
+			// if (direction === "L") {
+			// 	console.log('left');
+			// } else {
+			// 	console.log("right");
+			// }
+
+			// let spreadZ = matchRack.position.z;
+
+			// const boxMesh = createBox(matchingBox.width / 1000, matchingBox.height / 1000, matchingBox.depth / 1000, 0, moveY, 0, matchingBox.color, matchingBox.name);
+			// warehouseBoxes.push(boxMesh);
 		}
-
-		// if (warehouseItem.dir === "L") {
-		// 	console.log("left");
-		// } else {
-		// 	console.log("right");
-		// }
 	}
 };
 
@@ -188,20 +233,25 @@ window.addEventListener("resize", () => {
 // Camera
 const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 1000);
 camera.position.set(20, 10, -20);
-camera.lookAt(0, 0, 0);
+// camera.lookAt(0, 0, 0);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.enablePan = false; // controls off
 controls.enableKeys = false;
-controls.minZoom = 0;
-controls.maxZoom = 2;
+// controls.minZoom = 0;
+// controls.maxZoom = 2;
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
 	canvas: canvas,
 });
+
+labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(sizes.width, sizes.height);
+document.body.appendChild(labelRenderer.domElement);
+
 renderer.setSize(sizes.width, sizes.height);
 renderer.setClearColor("#d0d0d0");
 
@@ -209,9 +259,10 @@ function animate() {
 	requestAnimationFrame(animate);
 	// scene.rotation.y += 0.005;
 
-	// required if controls.enableDamping or controls.autoRotate are set to true
 	controls.update();
+
 	renderer.render(scene, camera);
+	// labelRenderer.render(scene, camera);
 }
 
 requestAnimationFrame(animate);
