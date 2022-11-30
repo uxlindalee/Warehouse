@@ -1,9 +1,8 @@
-import * as THREE from "/public/resources/three.module.js";
-import { OrbitControls } from '/public/resources/OrbitControls.js';
-import warehouseJson from '/public/data/warehouse.json' assert { type: "json" };
+import * as THREE from "../../lib/three.module.js";
+import { OrbitControls } from "../../lib/OrbitControls.js";
+import warehouseJson from "../../src/json/warehouse.json" assert { type: "json" };
 
 const App = function () {
-    const container = document.querySelector('.container');
     let canvas, renderer, scene, camera, light, controls;
     let ww, wh;
     let isRequsetRender;
@@ -24,7 +23,7 @@ const App = function () {
             setBoxs();
             update(data);
         }
-        setTimeout(getData, 50);
+        // setTimeout(getData, 50);
     }
 
     window.warehouseDataGenerator.getData();
@@ -42,8 +41,7 @@ const App = function () {
         renderer.setClearColor('#d7d6d7', 1.0);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(ww, wh);
-        canvas = renderer.domElement;
-        container.appendChild(canvas);
+        canvas = document.querySelector("canvas.webgl");
 
         // Light
         light = new THREE.AmbientLight('#fff', 1);
@@ -123,7 +121,7 @@ const App = function () {
                         boxY/1000 - sizes.height[i]/1000 / 2 ,
                         boxZ/1000,
                         `rack_${j + 1}`,
-                        ${i + 1}-${j+ 1}-${float}
+                        `${i + 1}-${j+ 1}-${float}`
                     );
                     warehouseRacks.push(rack);
                 }
@@ -244,16 +242,16 @@ const App = function () {
         item.position.set(x, y, z);
         scene.add(item);
 
-        if ( Math.round(y - h/2) === 0 ) {
-            const bubbleMap = new THREE.TextureLoader().load( ../../public/images/bubble_${name}.png );
-            const bubbleMaterial = new THREE.SpriteMaterial( { map: bubbleMap } );
-            const bubbleSprite = new THREE.Sprite( bubbleMaterial );
-            const bubbleScaleX = name.indexOf('rack') < 0 ? 0.6 : 0.4;
-            const bubbleY = name.indexOf('rack') < 0 ? 3.5 : 2.5;
-            bubbleSprite.scale.set(bubbleScaleX, 0.4, 0.4);
-            bubbleSprite.position.set(x, bubbleY, z);
-            scene.add( bubbleSprite );
-        }
+        // if ( Math.round(y - h/2) === 0 ) {
+        //     const bubbleMap = new THREE.TextureLoader().load( ../../public/images/bubble_${name}.png );
+        //     const bubbleMaterial = new THREE.SpriteMaterial( { map: bubbleMap } );
+        //     const bubbleSprite = new THREE.Sprite( bubbleMaterial );
+        //     const bubbleScaleX = name.indexOf('rack') < 0 ? 0.6 : 0.4;
+        //     const bubbleY = name.indexOf('rack') < 0 ? 3.5 : 2.5;
+        //     bubbleSprite.scale.set(bubbleScaleX, 0.4, 0.4);
+        //     bubbleSprite.position.set(x, bubbleY, z);
+        //     scene.add( bubbleSprite );
+        // }
 
         return item;
     } 

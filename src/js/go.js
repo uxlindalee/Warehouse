@@ -107,10 +107,10 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 };
 
 //Elevator
-buildWarehouse(elevator.depth, elevator.height, elevator.width, -(json.width[0] + elevator.depth / 2), elevator.height / 2, elevator.width / 2 + boxGap * 2);
+buildWarehouse(elevator.depth, elevator.height, elevator.width, -(json.width[0] + elevator.depth / 2), elevator.height / 2, 0);
 
 //Shuttle
-buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(json.width[0] + elevator.depth / 2), shuttle.height / 2, elevator.width / 2);
+buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(json.width[0] + elevator.depth / 2), shuttle.height / 2, 0);
 
 //Containers in rack
 for (let k = 0; k < json.depth.length; k++) {
@@ -122,14 +122,14 @@ for (let k = 0; k < json.depth.length; k++) {
 			const boxW = json.width[i];
 			const boxH = json.height[j];
 			const boxD = json.depth[k];
-			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2);
+			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2 - elevator.width/2-(boxGap*2));
 			warehouseRacks.push(rack);
 		}
 		positionX = 0;
 		positionY += json.height[j] + boxGap;
 	}
 	positionY = 0;
-	positionZ += json.depth[k] + elevator.width + boxGap * 4;
+	positionZ += json.depth[k] + elevator.width +(boxGap*4);
 }
 
 //Colored Boxes
@@ -159,12 +159,8 @@ const getBoxes = function () {
 	const meshes = [];
 
 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
-		console.log(i);
 		const warehouseItem = warehouseData.warehouse[i];
 		const matchingBox = boxInfos.find((item) => item.type === warehouseItem.box_type);
-		// let rackX = warehouseRacks[i].position.x;
-		// let rackY = warehouseRacks[i].position.y;
-		// let rackZ = warehouseRacks[i].position.z;
 
 		let obj = {
 			type: warehouseItem.box_type,
@@ -225,6 +221,7 @@ const getBoxes = function () {
 
 	for (let i = 0; i < objs.length; i++) {
 		let width, height, depth, color, double, posZ, posY;
+		
 
 		switch (objs[i].type) {
 			case boxInfos[0].type:
@@ -268,17 +265,17 @@ const getBoxes = function () {
 		}
 
 		if (objs[i].dir === "L") {
-			posZ = 0; //박스 중간점===depth
+			posZ = -1110; 
 		} else {
-			posZ = 0;
+			posZ = 1110;
 		}
 
 		if (objs[i].floor === 1) {
-			posY = height / 2;
+			posY = json.height[0] / 2;
 		} else if (objs[i] === 2) {
-			posY = height / 2 + 500 + 100;
+			posY = json.height[0] / 2 + json.height[0] + boxGap;
 		} else {
-			posY = height / 2 + 500 * 2 + 100 * 2;
+			posY = json.height[0] / 2 + json.height[0] * 2 + boxGap * 2;
 		}
 
 		// let posX = (racksDepth[objs[i].rackNum - 1] / rackCell) * objs[i].array - (racksDepth[objs[i].rackNum - 1] / rackCell) * 0.5 + racksDepth[0] * (objs[i].rackNum - 1) + racksGap * objs[i].rackNum;
@@ -302,7 +299,6 @@ const getBoxes = function () {
 	}
 };
 
-// let moveX = (json.width.reduce((a, b) => a + b, 0) / json.width.length) * rack * 0.001 + boxGap;
 
 window.addEventListener("resize", () => {
 	// Update sizes

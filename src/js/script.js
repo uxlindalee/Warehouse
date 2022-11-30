@@ -65,9 +65,10 @@ let positionY = 0;
 let positionZ = 0;
 
 const buildWarehouse = function (d, h, w, x, y, z) {
+	let totalWidth = json.width.reduce((a, b) => a + b, 0)+boxGap*json.width.length-1+elevator.width;
 	const boxGroup = new THREE.Group();
-	// boxGroup.position.set(json.width.length * -1, 0, (json.depth.length + elevator.width / 2) * -0.3);
-	boxGroup.position.set(0, 0, 0);
+	boxGroup.position.set(0,0,0);
+	
 	scene.add(boxGroup);
 
 	const boxGeometry = new THREE.BoxGeometry(w, h, d);
@@ -106,11 +107,12 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 	return box;
 };
 
+
 //Elevator
-buildWarehouse(elevator.depth, elevator.height, elevator.width, -(json.width[0] + elevator.depth / 2), elevator.height / 2, elevator.width / 2 + boxGap * 2);
+buildWarehouse(elevator.depth, elevator.height, elevator.width, -(json.width[0] + elevator.depth / 2), elevator.height / 2, 0);
 
 //Shuttle
-buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(json.width[0] + elevator.depth / 2), shuttle.height / 2, elevator.width / 2);
+buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(json.width[0] + elevator.depth / 2), shuttle.height / 2, 0);
 
 //Containers in rack
 for (let k = 0; k < json.depth.length; k++) {
@@ -122,14 +124,14 @@ for (let k = 0; k < json.depth.length; k++) {
 			const boxW = json.width[i];
 			const boxH = json.height[j];
 			const boxD = json.depth[k];
-			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2);
+			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2 - elevator.width/2-(boxGap*2));
 			warehouseRacks.push(rack);
 		}
 		positionX = 0;
 		positionY += json.height[j] + boxGap;
 	}
 	positionY = 0;
-	positionZ += json.depth[k] + elevator.width + boxGap * 4;
+	positionZ += json.depth[k] + elevator.width +(boxGap*4);
 }
 
 //Colored Boxes
@@ -158,6 +160,7 @@ const getBoxes = function () {
 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
 		const warehouseItem = warehouseData.warehouse[i];
 		const matchingBox = boxInfos.find((item) => item.type === warehouseItem.box_type);
+	
 		let rackX = warehouseRacks[i].position.x;
 		let rackY = warehouseRacks[i].position.y;
 		let rackZ = warehouseRacks[i].position.z;
@@ -169,8 +172,7 @@ const getBoxes = function () {
 			let direction = idSplit[2];
 			let number = idSplit[3];
 
-			console.log(number);
-			if (matchingBox.type === "BLUE") {
+			if (matchingBox.double === true) {
 				[
 					createBox(
 						matchingBox.width,
@@ -198,8 +200,7 @@ const getBoxes = function () {
 					matchingBox.width,
 					matchingBox.height,
 					matchingBox.depth,
-					// rackX - (json.width[5] / 2 - matchingBox.width / 2) + (json.width[5] / 5 / 2) * number,
-					rackX - (json.width[5] / 2 - matchingBox.width / 2),
+					rackX,
 					rackY - (json.height[0] / 2 - matchingBox.height / 2),
 					rackZ,
 					matchingBox.color,
@@ -210,7 +211,6 @@ const getBoxes = function () {
 	}
 };
 
-// let moveX = (json.width.reduce((a, b) => a + b, 0) / json.width.length) * rack * 0.001 + boxGap;
 
 window.addEventListener("resize", () => {
 	// Update sizes
@@ -236,6 +236,7 @@ const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.enablePan = false; // controls off
 controls.enableKeys = false;
+controls.target.set(5000, 1000,0);
 // controls.minZoom = 0;
 // controls.maxZoom = 2;
 
