@@ -154,59 +154,151 @@ const createBox = function (w, h, d, x, y, z, color, name) {
 
 const getBoxes = function () {
 	let boxInfos = warehouseJson.box_infos; //5
+	const objs = [];
+	const boxes = [];
+	const meshes = [];
 
 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
+		console.log(i);
 		const warehouseItem = warehouseData.warehouse[i];
 		const matchingBox = boxInfos.find((item) => item.type === warehouseItem.box_type);
-		let rackX = warehouseRacks[i].position.x;
-		let rackY = warehouseRacks[i].position.y;
-		let rackZ = warehouseRacks[i].position.z;
+		// let rackX = warehouseRacks[i].position.x;
+		// let rackY = warehouseRacks[i].position.y;
+		// let rackZ = warehouseRacks[i].position.z;
 
-		if (matchingBox) {
-			const idSplit = warehouseItem.id.split("-");
-			let floor = idSplit[0];
-			let rack = idSplit[1];
-			let direction = idSplit[2];
-			let number = idSplit[3];
+		let obj = {
+			type: warehouseItem.box_type,
+			floor: warehouseItem.floor,
+			num: warehouseItem.id.split("-")[1],
+			dir: warehouseItem.dir,
+			cell: warehouseItem.id.split("-")[3],
+		};
 
-			console.log(number);
-			if (matchingBox.type === "BLUE") {
-				[
-					createBox(
-						matchingBox.width,
-						matchingBox.height,
-						matchingBox.depth,
-						rackX - (json.width[5] / 2 - matchingBox.width / 2),
-						rackY - (json.height[0] / 2 - matchingBox.height / 2),
-						rackZ - (json.depth[0] / 2 - matchingBox.depth / 2) + boxGap * 1.5,
-						matchingBox.color,
-						matchingBox.name
-					),
-					createBox(
-						matchingBox.width,
-						matchingBox.height,
-						matchingBox.depth,
-						rackX - (json.width[5] / 2 - matchingBox.width / 2),
-						rackY - (json.height[0] / 2 - matchingBox.height / 2),
-						rackZ + (json.depth[0] / 2 - matchingBox.depth / 2) - boxGap * 1.5,
-						matchingBox.color,
-						matchingBox.name
-					),
-				];
-			} else {
-				createBox(
-					matchingBox.width,
-					matchingBox.height,
-					matchingBox.depth,
-					// rackX - (json.width[5] / 2 - matchingBox.width / 2) + (json.width[5] / 5 / 2) * number,
-					rackX - (json.width[5] / 2 - matchingBox.width / 2),
-					rackY - (json.height[0] / 2 - matchingBox.height / 2),
-					rackZ,
-					matchingBox.color,
-					matchingBox.name
-				);
-			}
+		objs.push(obj);
+
+		// if (matchingBox) {
+		// 	const idSplit = warehouseItem.id.split("-");
+		// 	let floor = idSplit[0];
+		// 	let rack = idSplit[1];
+		// 	let direction = idSplit[2];
+		//     let number = idSplit[3];
+
+		// 	console.log(number);
+		// 	if (matchingBox.type === "BLUE") {
+		// 		[
+		// 			createBox(
+		// 				matchingBox.width,
+		// 				matchingBox.height,
+		// 				matchingBox.depth,
+		// 				rackX - (json.width[5] / 2 - matchingBox.width / 2),
+		// 				rackY - (json.height[0] / 2 - matchingBox.height / 2),
+		// 				rackZ - (json.depth[0] / 2 - matchingBox.depth / 2) + boxGap * 1.5,
+		// 				matchingBox.color,
+		// 				matchingBox.name
+		// 			),
+		// 			createBox(
+		// 				matchingBox.width,
+		// 				matchingBox.height,
+		// 				matchingBox.depth,
+		// 				rackX - (json.width[5] / 2 - matchingBox.width / 2),
+		// 				rackY - (json.height[0] / 2 - matchingBox.height / 2),
+		// 				rackZ + (json.depth[0] / 2 - matchingBox.depth / 2) - boxGap * 1.5,
+		// 				matchingBox.color,
+		// 				matchingBox.name
+		// 			),
+		// 		];
+		// 	} else {
+		// 		createBox(
+		// 			matchingBox.width,
+		// 			matchingBox.height,
+		// 			matchingBox.depth,
+		// 			// rackX - (json.width[5] / 2 - matchingBox.width / 2) + (json.width[5] / 5 / 2) * number,
+		// 			rackX - (json.width[5] / 2 - matchingBox.width / 2),
+		// 			rackY - (json.height[0] / 2 - matchingBox.height / 2),
+		// 			rackZ,
+		// 			matchingBox.color,
+		// 			matchingBox.name
+		// 		);
+		// 	}
+		// }
+	}
+
+	for (let i = 0; i < objs.length; i++) {
+		let width, height, depth, color, double, posZ, posY;
+
+		switch (objs[i].type) {
+			case boxInfos[0].type:
+				width = boxInfos[0].width;
+				height = boxInfos[0].height;
+				depth = boxInfos[0].depth;
+				color = boxInfos[0].color;
+				double = boxInfos[0].double;
+				break;
+			case boxInfos[1].type:
+				width = boxInfos[1].width;
+				height = boxInfos[1].height;
+				depth = boxInfos[1].depth;
+				color = boxInfos[1].color;
+				double = boxInfos[1].double;
+				break;
+			case boxInfos[2].type:
+				width = boxInfos[2].width;
+				height = boxInfos[2].height;
+				depth = boxInfos[2].depth;
+				color = boxInfos[2].color;
+				double = boxInfos[2].double;
+				break;
+			case boxInfos[3].type:
+				width = boxInfos[3].width;
+				height = boxInfos[3].height;
+				depth = boxInfos[3].depth;
+				color = boxInfos[3].color;
+				double = boxInfos[3].double;
+				break;
+			case boxInfos[4].type:
+				width = boxInfos[4].width;
+				height = boxInfos[4].height;
+				depth = boxInfos[4].depth;
+				color = boxInfos[4].color;
+				double = boxInfos[4].double;
+				break;
+
+			default:
+				color = `fff`;
 		}
+
+		if (objs[i].dir === "L") {
+			posZ = 0; //박스 중간점===depth
+		} else {
+			posZ = 0;
+		}
+
+		if (objs[i].floor === 1) {
+			posY = height / 2;
+		} else if (objs[i] === 2) {
+			posY = height / 2 + 500 + 100;
+		} else {
+			posY = height / 2 + 500 * 2 + 100 * 2;
+		}
+
+		// let posX = (racksDepth[objs[i].rackNum - 1] / rackCell) * objs[i].array - (racksDepth[objs[i].rackNum - 1] / rackCell) * 0.5 + racksDepth[0] * (objs[i].rackNum - 1) + racksGap * objs[i].rackNum;
+		let posX = 0;
+		if (objs[i].type !== "N") {
+			let box = {
+				geometry: new THREE.BoxGeometry(width, height, depth),
+				material: new THREE.MeshStandardMaterial({ color: `#${color}` }),
+				posX,
+				posY,
+				posZ,
+			};
+			boxes.push(box);
+		}
+	}
+
+	for (let i = 0; i < boxes.length; i++) {
+		let mesh = new THREE.Mesh(boxes[i].geometry, boxes[i].material);
+		scene.add(mesh);
+		meshes.push(mesh);
 	}
 };
 

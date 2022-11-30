@@ -6,7 +6,6 @@ import warehouseJson from "../../src/json/warehouse.json" assert { type: "json" 
 // Loader
 let warehouseData;
 let warehouseRacks = [];
-let warehouseBoxes = [];
 let labelRenderer;
 
 function getData() {
@@ -19,7 +18,7 @@ window.dataCallback = function (data) {
 		warehouseData = data;
 		getBoxes();
 	}
-	// setTimeout(getData, 50);
+	// setTimeout(getData,50)
 };
 window.warehouseDataGenerator.getData();
 
@@ -50,7 +49,7 @@ light.shadow.camera.far = 100;
 scene.add(light);
 
 // Axes Helper
-const axesHelper = new THREE.AxesHelper(5000);
+const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
 
 // Object
@@ -58,7 +57,7 @@ let json = warehouseJson.sizes;
 let boxRacks = warehouseJson.racks;
 let shuttle = json.shuttle;
 let elevator = json.elevator;
-let boxGap = 50;
+let boxGap = 0.05;
 
 let positionX = 0;
 let positionY = 0;
@@ -66,8 +65,7 @@ let positionZ = 0;
 
 const buildWarehouse = function (d, h, w, x, y, z) {
 	const boxGroup = new THREE.Group();
-	// boxGroup.position.set(json.width.length * -1, 0, (json.depth.length + elevator.width / 2) * -0.3);
-	boxGroup.position.set(0, 0, 0);
+	boxGroup.position.set(json.width.length * -1, 0, (json.depth.length + (elevator.width * 0.001) / 2) * -0.3);
 	scene.add(boxGroup);
 
 	const boxGeometry = new THREE.BoxGeometry(w, h, d);
@@ -90,10 +88,11 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 	tag.textContent = "1";
 	// for (let i = 0; i <= 6; i++) {
 	// 	tag.textContent = i;
+	// 	console.log(i);
 	// }
 
 	const tagLabel = new CSS2DObject(tag);
-	tagLabel.position.set(0, json.height.length, 0);
+	tagLabel.position.set(x, json.height.length, z);
 	boxGroup.add(tagLabel);
 
 	const map = new THREE.TextureLoader().load("../src/images/tag.png");
@@ -107,36 +106,50 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 };
 
 //Elevator
-buildWarehouse(elevator.depth, elevator.height, elevator.width, -(json.width[0] + elevator.depth / 2), elevator.height / 2, elevator.width / 2 + boxGap * 2);
+buildWarehouse(
+	elevator.depth * 0.001,
+	elevator.height * 0.001,
+	elevator.width * 0.001,
+	-(json.width[0] * 0.001 + (elevator.width * 0.001) / 2),
+	(elevator.height * 0.001) / 2,
+	(elevator.width * 0.001) / 2 + 0.15
+);
 
 //Shuttle
-buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(json.width[0] + elevator.depth / 2), shuttle.height / 2, elevator.width / 2);
+buildWarehouse(
+	shuttle.depth * 0.001,
+	shuttle.height * 0.001,
+	shuttle.width * 0.001,
+	-(json.width[0] * 0.001 + (elevator.width * 0.001) / 2),
+	(shuttle.height * 0.001) / 2,
+	(elevator.width * 0.001) / 2 + 0.15
+);
 
 //Containers in rack
 for (let k = 0; k < json.depth.length; k++) {
 	for (let j = 0; j < json.height.length; j++) {
 		for (let i = 0; i < json.width.length; i++) {
 			if (i !== 0) {
-				positionX += json.width[i] + boxGap;
+				positionX += json.width[i] * 0.001 + boxGap;
 			}
-			const boxW = json.width[i];
-			const boxH = json.height[j];
-			const boxD = json.depth[k];
-			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2);
+			const boxW = json.width[i] * 0.001;
+			const boxH = json.height[j] * 0.001;
+			const boxD = json.depth[k] * 0.001;
+			const rack = buildWarehouse(boxD, boxH, boxW, positionX - (json.width[i] * 0.001) / 2, positionY + (json.height[j] * 0.001) / 2, positionZ - (json.depth[k] * 0.001) / 2);
 			warehouseRacks.push(rack);
 		}
 		positionX = 0;
-		positionY += json.height[j] + boxGap;
+		positionY += json.height[j] * 0.001 + boxGap;
 	}
 	positionY = 0;
-	positionZ += json.depth[k] + elevator.width + boxGap * 4;
+	positionZ += json.depth[k] * 0.001 * 2 + shuttle.width * 0.001;
 }
 
 //Colored Boxes
 const createBox = function (w, h, d, x, y, z, color, name) {
 	const colorBoxes = new THREE.Group();
-	// colorBoxes.position.set(x, y / json.height[0] + h / 2, 0);
-	colorBoxes.position.set(0, 0, 0);
+	colorBoxes.position.set(x, y / json.height[0] + h / 2, 0);
+	// colorBoxes.position.set(x, y, z);
 	scene.add(colorBoxes);
 
 	const item = new THREE.Mesh(
@@ -155,62 +168,46 @@ const createBox = function (w, h, d, x, y, z, color, name) {
 const getBoxes = function () {
 	let boxInfos = warehouseJson.box_infos; //5
 
+	// createBox(boxInfos[0].width * 0.001, boxInfos[0].height * 0.001, boxInfos[0].depth * 0.001, boxInfos[0].width * -0.005, (boxInfos[0].height * 0.001) / 2, 0, boxInfos[0].color, boxInfos[0].name);
+	// createBox(
+	// 	boxInfos[1].width * 0.001,
+	// 	boxInfos[1].height * 0.001,
+	// 	boxInfos[1].depth * 0.001,
+	// 	boxInfos[1].width * -0.003,
+	// 	(boxInfos[1].height * 0.001) / 2,
+	// 	(boxInfos[1].depth * 0.001) / 2,
+	// 	boxInfos[1].color,
+	// 	boxInfos[1].name
+	// );
+	// createBox(boxInfos[2].width * 0.001, boxInfos[2].height * 0.001, boxInfos[2].depth * 0.001, boxInfos[2].width * 0.001, (boxInfos[2].height * 0.001) / 2, 0, boxInfos[2].color, boxInfos[2].name);
+	// createBox(boxInfos[3].width * 0.001, boxInfos[3].height * 0.001, boxInfos[3].depth * 0.001, boxInfos[3].width * 0.003, (boxInfos[3].height * 0.001) / 2, 0, boxInfos[3].color, boxInfos[3].name);
+	// createBox(boxInfos[4].width * 0.001, boxInfos[4].height * 0.001, boxInfos[4].depth * 0.001, boxInfos[4].width * 0.005, (boxInfos[4].height * 0.001) / 2, 0, boxInfos[4].color, boxInfos[4].name);
+
 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
 		const warehouseItem = warehouseData.warehouse[i];
 		const matchingBox = boxInfos.find((item) => item.type === warehouseItem.box_type);
-		let rackX = warehouseRacks[i].position.x;
-		let rackY = warehouseRacks[i].position.y;
-		let rackZ = warehouseRacks[i].position.z;
+		let floor, rack, direction, number;
+		// let rackX = warehouseRacks[i].position.x;
+		// let rackY = warehouseRacks[i].position.y;
+		// let rackZ = warehouseRacks[i].position.z;
+		// console.log(rackX, rackY, rackZ);
 
 		if (matchingBox) {
 			const idSplit = warehouseItem.id.split("-");
-			let floor = idSplit[0];
-			let rack = idSplit[1];
-			let direction = idSplit[2];
-			let number = idSplit[3];
+			floor = idSplit[0];
+			rack = idSplit[1];
+			direction = idSplit[2];
+			number = idSplit[3];
+			// console.log(floor, rack, direction, number);
 
-			console.log(number);
-			if (matchingBox.type === "BLUE") {
-				[
-					createBox(
-						matchingBox.width,
-						matchingBox.height,
-						matchingBox.depth,
-						rackX - (json.width[5] / 2 - matchingBox.width / 2),
-						rackY - (json.height[0] / 2 - matchingBox.height / 2),
-						rackZ - (json.depth[0] / 2 - matchingBox.depth / 2) + boxGap * 1.5,
-						matchingBox.color,
-						matchingBox.name
-					),
-					createBox(
-						matchingBox.width,
-						matchingBox.height,
-						matchingBox.depth,
-						rackX - (json.width[5] / 2 - matchingBox.width / 2),
-						rackY - (json.height[0] / 2 - matchingBox.height / 2),
-						rackZ + (json.depth[0] / 2 - matchingBox.depth / 2) - boxGap * 1.5,
-						matchingBox.color,
-						matchingBox.name
-					),
-				];
-			} else {
-				createBox(
-					matchingBox.width,
-					matchingBox.height,
-					matchingBox.depth,
-					// rackX - (json.width[5] / 2 - matchingBox.width / 2) + (json.width[5] / 5 / 2) * number,
-					rackX - (json.width[5] / 2 - matchingBox.width / 2),
-					rackY - (json.height[0] / 2 - matchingBox.height / 2),
-					rackZ,
-					matchingBox.color,
-					matchingBox.name
-				);
-			}
+			let moveX = (json.width.reduce((a, b) => a + b, 0) / json.width.length) * rack * 0.001 + boxGap;
+			let moveY = (json.height.reduce((a, b) => a + b, 0) / json.height.length) * floor - json.height[0] + boxGap * (json.height.length - 1);
+			let moveZ = direction === "L" ? -((json.depth[0] * 0.001) / 2 + (elevator.width * 0.001) / 2 + boxGap * 3) : (json.depth[0] * 0.001) / 2 + (elevator.width * 0.001) / 2 + boxGap * 3.5;
+
+			createBox(matchingBox.width * 0.001, matchingBox.height * 0.001, matchingBox.depth * 0.001, moveX + number / 2 + boxGap, moveY * 0.001, moveZ, matchingBox.color, matchingBox.name);
 		}
 	}
 };
-
-// let moveX = (json.width.reduce((a, b) => a + b, 0) / json.width.length) * rack * 0.001 + boxGap;
 
 window.addEventListener("resize", () => {
 	// Update sizes
@@ -227,8 +224,8 @@ window.addEventListener("resize", () => {
 });
 
 // Camera
-const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 10, 1000000);
-camera.position.set(20000, 10000, -20000);
+const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 1000);
+camera.position.set(20, 10, -20);
 // camera.lookAt(0, 0, 0);
 
 // Controls
