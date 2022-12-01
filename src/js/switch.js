@@ -85,6 +85,7 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 	const tag = document.createElement("p");
 	tag.className = "text-label";
 	tag.textContent = `${(Math.round(x / json.width[0]) * 100) / 100}`;
+	// tag.textContent = "Shuttle lift";
 
 	const tagLabel = new CSS2DObject(tag);
 	tagLabel.position.set(x, (json.height.length + 2) * json.height[0], z);

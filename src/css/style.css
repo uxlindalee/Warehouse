@@ -23,13 +23,14 @@ body {
   font-size: 20px;
   -webkit-transform: translateX(-50%);
           transform: translateX(-50%);
+  text-transform: uppercase;
 }
 
 .text-label {
   z-index: 2;
-  padding: 6px 15px 3px;
+  padding: 6px 12px 4px;
   pointer-events: none;
-  font-size: 1rem;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   background-color: rgba(0, 0, 0, 0.9);
