@@ -53,3 +53,16 @@ body {
   -webkit-transform: translateX(-50%) rotate(45deg);
           transform: translateX(-50%) rotate(45deg);
 }
+
+.lr-label {
+  z-index: 2;
+  padding: 8px 14px 4px;
+  pointer-events: none;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.9);
+  -webkit-box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}

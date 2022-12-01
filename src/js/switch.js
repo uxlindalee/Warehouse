@@ -85,11 +85,34 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 	const tag = document.createElement("p");
 	tag.className = "text-label";
 	tag.textContent = `${(Math.round(x / json.width[0]) * 100) / 100}`;
-	// tag.textContent = "Shuttle lift";
 
 	const tagLabel = new CSS2DObject(tag);
 	tagLabel.position.set(x, (json.height.length + 2) * json.height[0], z);
 	boxGroup.add(tagLabel);
+
+	const liftTag = document.createElement("p");
+	liftTag.className = "text-label";
+	liftTag.textContent = "Shuttle lift";
+
+	const liftLabel = new CSS2DObject(liftTag);
+	liftLabel.position.set(x / x + elevator.width / -2, (json.height.length + 3) * json.height[0], z / z);
+	boxGroup.add(liftLabel);
+
+	const leftTag = document.createElement("p");
+	leftTag.className = "lr-label";
+	leftTag.textContent = "L";
+
+	const leftLabel = new CSS2DObject(leftTag);
+	leftLabel.position.set((x / x) * json.width.reduce((a, b) => a + b, 0) + elevator.width / 2, 0, z / z + elevator.width / 2 + json.depth[0] / 2) + boxGap * 4;
+	boxGroup.add(leftLabel);
+
+	const rightTag = document.createElement("p");
+	rightTag.className = "lr-label";
+	rightTag.textContent = "R";
+
+	const rightLabel = new CSS2DObject(rightTag);
+	rightLabel.position.set((x / x) * json.width.reduce((a, b) => a + b, 0) + elevator.width / 2, 0, z / z - elevator.width / 2 - json.depth[0] / 2) - boxGap * 4;
+	boxGroup.add(rightLabel);
 
 	// const map = new THREE.TextureLoader().load("../src/images/tag.png");
 	// const material = new THREE.SpriteMaterial({ map: map });
