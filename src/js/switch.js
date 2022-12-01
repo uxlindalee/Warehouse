@@ -285,6 +285,7 @@ window.addEventListener("resize", () => {
 
 	// Update renderer
 	renderer.setSize(sizes.width, sizes.height);
+	labelRenderer.setSize(sizes.width, sizes.height);
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
@@ -302,7 +303,7 @@ renderer.setClearColor("#d0d0d0");
 
 function animate() {
 	requestAnimationFrame(animate);
-	// scene.rotation.y += 0.005;
+	scene.rotation.y += 0.002;
 
 	controls.update();
 

@@ -6,6 +6,7 @@
 html,
 body {
   overflow: hidden;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
 }
 
 .webgl {
@@ -21,8 +22,7 @@ body {
   left: 50%;
   z-index: 2;
   font-size: 20px;
-  -webkit-transform: translateX(-50%);
-          transform: translateX(-50%);
+  transform: translateX(-50%);
   text-transform: uppercase;
 }
 
@@ -34,8 +34,7 @@ body {
   font-weight: 700;
   color: #fff;
   background-color: rgba(0, 0, 0, 0.9);
-  -webkit-box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-          box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
   border-radius: 5px;
 }
 .text-label::after {
@@ -48,10 +47,8 @@ body {
   width: 8px;
   height: 8px;
   background-color: rgba(0, 0, 0, 0.9);
-  -webkit-box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-  -webkit-transform: translateX(-50%) rotate(45deg);
-          transform: translateX(-50%) rotate(45deg);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .lr-label {
@@ -62,7 +59,6 @@ body {
   font-weight: 700;
   color: #fff;
   background-color: rgba(0, 0, 0, 0.9);
-  -webkit-box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-          box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-}
+}/*# sourceMappingURL=style.css.map */
