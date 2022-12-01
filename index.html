@@ -7,14 +7,17 @@
 		<title>Linda's Warehouse</title>
 		<link rel="stylesheet" href="./src/css/style.css" />
 		<script src="./lib/gsap.min.js"></script>
-		<script type="module" src="./src/js/script.js" defer></script>
+		<script type="module" src="./src/js/switch.js" defer></script>
 	</head>
 
 	<body>
 		<main>
 			<h1 class="title">Warehouse</h1>
 			<canvas class="webgl"></canvas>
+			<p class="text-label">0</p>
 		</main>
 		<script src="./src/js/warehouse-data.js"></script>
 	</body>
 </html>
+
+<!-- matchRack.position.x - matchRack.geometry.parameters.width/2 + boxInfo.width/1000/2 + 0.15 + (boxIdArr[3]-1)*0.5,  -->

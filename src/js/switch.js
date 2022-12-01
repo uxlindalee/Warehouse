@@ -1,12 +1,11 @@
 import * as THREE from "../../lib/three.module.js";
 import { OrbitControls } from "../../lib/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "../../lib/CSS2DRenderer.js";
-import warehouseJson from "../../src/json/warehouse.json" assert { type: "json" };
+import warehouseJson from "../json/warehouse.json" assert { type: "json" };
 
 // Loader
 let warehouseData;
 let warehouseRacks = [];
-let warehouseBoxes = [];
 let labelRenderer;
 
 function getData() {
@@ -55,7 +54,6 @@ scene.add(axesHelper);
 
 // Object
 let json = warehouseJson.sizes;
-let boxRacks = warehouseJson.racks;
 let shuttle = json.shuttle;
 let elevator = json.elevator;
 let boxGap = 50;
@@ -64,12 +62,11 @@ let positionX = 0;
 let positionY = 0;
 let positionZ = 0;
 
-const buildWarehouse = function (d, h, w, x, y, z) {
-	const boxGroup = new THREE.Group();
-	// boxGroup.position.set(json.width.length * -1, 0, (json.depth.length + elevator.width / 2) * -0.3);
-	boxGroup.position.set(0, 0, 0);
-	scene.add(boxGroup);
+const boxGroup = new THREE.Group();
+boxGroup.position.set(-(json.width.reduce((a, b) => a + b, 0) / 2), 0, 0);
+scene.add(boxGroup);
 
+const buildWarehouse = function (d, h, w, x, y, z) {
 	const boxGeometry = new THREE.BoxGeometry(w, h, d);
 	const boxMaterial = new THREE.MeshBasicMaterial({
 		color: "#ffffff",
@@ -87,76 +84,60 @@ const buildWarehouse = function (d, h, w, x, y, z) {
 
 	const tag = document.createElement("p");
 	tag.className = "text-label";
-	tag.textContent = "1";
-	// for (let i = 0; i <= 6; i++) {
-	// 	tag.textContent = i;
-	// }
+	tag.textContent = `${(Math.round(x / json.width[0]) * 100) / 100}`;
 
 	const tagLabel = new CSS2DObject(tag);
-	tagLabel.position.set(0, json.height.length, 0);
+	tagLabel.position.set(x, (json.height.length + 2) * json.height[0], z);
 	boxGroup.add(tagLabel);
 
-	const map = new THREE.TextureLoader().load("../src/images/tag.png");
-	const material = new THREE.SpriteMaterial({ map: map });
-	const sprite = new THREE.Sprite(material);
+	// const map = new THREE.TextureLoader().load("../src/images/tag.png");
+	// const material = new THREE.SpriteMaterial({ map: map });
+	// const sprite = new THREE.Sprite(material);
 
-	sprite.scale.set(0.5, 0.5, 0.5);
-	sprite.position.set(x, json.height.length, z);
-	boxGroup.add(sprite);
-	return box;
+	// sprite.scale.set(500, 500, 500);
+	// sprite.position.set(x, (json.height.length + 1) * json.height[0], z);
+	// boxGroup.add(sprite);
+	// return box;
 };
 
 //Elevator
-buildWarehouse(elevator.depth, elevator.height, elevator.width, -(json.width[0] + elevator.depth / 2), elevator.height / 2, 0);
+buildWarehouse(elevator.depth, elevator.height, elevator.width, -(elevator.depth / 2), elevator.height / 2, 0);
 
 //Shuttle
-buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(json.width[0] + elevator.depth / 2), shuttle.height / 2, 0);
+buildWarehouse(shuttle.depth, shuttle.height, shuttle.width, -(elevator.depth / 2), shuttle.height / 2, 0);
 
 //Containers in rack
 for (let k = 0; k < json.depth.length; k++) {
 	for (let j = 0; j < json.height.length; j++) {
 		for (let i = 0; i < json.width.length; i++) {
-			if (i !== 0) {
+			if (i === 0) positionX = 0;
+			if (i !== json.width.length) {
 				positionX += json.width[i] + boxGap;
 			}
 			const boxW = json.width[i];
 			const boxH = json.height[j];
 			const boxD = json.depth[k];
-			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2 - elevator.width/2-(boxGap*2));
+			const rack = buildWarehouse(boxD, boxH, boxW, positionX - json.width[i] / 2, positionY + json.height[j] / 2, positionZ - json.depth[k] / 2 - elevator.width / 2 - boxGap * 2);
 			warehouseRacks.push(rack);
 		}
 		positionX = 0;
 		positionY += json.height[j] + boxGap;
 	}
 	positionY = 0;
-	positionZ += json.depth[k] + elevator.width +(boxGap*4);
+	positionZ += json.depth[k] + elevator.width + boxGap * 4;
 }
-
-//Colored Boxes
-const createBox = function (w, h, d, x, y, z, color, name) {
-	const colorBoxes = new THREE.Group();
-	// colorBoxes.position.set(x, y / json.height[0] + h / 2, 0);
-	colorBoxes.position.set(0, 0, 0);
-	scene.add(colorBoxes);
-
-	const item = new THREE.Mesh(
-		new THREE.BoxGeometry(w, h, d),
-		new THREE.MeshStandardMaterial({
-			color: `#${color}`,
-		})
-	);
-
-	item.position.set(x, y, z);
-	item.name = name;
-	colorBoxes.add(item);
-	return item;
-};
 
 const getBoxes = function () {
 	let boxInfos = warehouseJson.box_infos; //5
 	const objs = [];
 	const boxes = [];
 	const meshes = [];
+
+	let racksWidth = warehouseJson.sizes.width;
+	let racksTotalWidth = racksWidth.reduce((a, b) => a + b, 0);
+	let racksHeight = warehouseJson.sizes.height;
+	let racksDepth = warehouseJson.sizes.depth;
+	let elevatorWidth = warehouseJson.sizes.elevator.width;
 
 	for (let i = 0; i < warehouseData.warehouse.length; i++) {
 		const warehouseItem = warehouseData.warehouse[i];
@@ -171,57 +152,10 @@ const getBoxes = function () {
 		};
 
 		objs.push(obj);
-
-		// if (matchingBox) {
-		// 	const idSplit = warehouseItem.id.split("-");
-		// 	let floor = idSplit[0];
-		// 	let rack = idSplit[1];
-		// 	let direction = idSplit[2];
-		//     let number = idSplit[3];
-
-		// 	console.log(number);
-		// 	if (matchingBox.type === "BLUE") {
-		// 		[
-		// 			createBox(
-		// 				matchingBox.width,
-		// 				matchingBox.height,
-		// 				matchingBox.depth,
-		// 				rackX - (json.width[5] / 2 - matchingBox.width / 2),
-		// 				rackY - (json.height[0] / 2 - matchingBox.height / 2),
-		// 				rackZ - (json.depth[0] / 2 - matchingBox.depth / 2) + boxGap * 1.5,
-		// 				matchingBox.color,
-		// 				matchingBox.name
-		// 			),
-		// 			createBox(
-		// 				matchingBox.width,
-		// 				matchingBox.height,
-		// 				matchingBox.depth,
-		// 				rackX - (json.width[5] / 2 - matchingBox.width / 2),
-		// 				rackY - (json.height[0] / 2 - matchingBox.height / 2),
-		// 				rackZ + (json.depth[0] / 2 - matchingBox.depth / 2) - boxGap * 1.5,
-		// 				matchingBox.color,
-		// 				matchingBox.name
-		// 			),
-		// 		];
-		// 	} else {
-		// 		createBox(
-		// 			matchingBox.width,
-		// 			matchingBox.height,
-		// 			matchingBox.depth,
-		// 			// rackX - (json.width[5] / 2 - matchingBox.width / 2) + (json.width[5] / 5 / 2) * number,
-		// 			rackX - (json.width[5] / 2 - matchingBox.width / 2),
-		// 			rackY - (json.height[0] / 2 - matchingBox.height / 2),
-		// 			rackZ,
-		// 			matchingBox.color,
-		// 			matchingBox.name
-		// 		);
-		// 	}
-		// }
 	}
 
 	for (let i = 0; i < objs.length; i++) {
-		let width, height, depth, color, double, posZ, posY;
-		
+		let width, height, depth, color, double, posX, posY, posZ;
 
 		switch (objs[i].type) {
 			case boxInfos[0].type:
@@ -265,26 +199,30 @@ const getBoxes = function () {
 		}
 
 		if (objs[i].dir === "L") {
-			posZ = -1110; 
+			posZ = -(elevatorWidth / 2 + boxGap * 2 + racksDepth[0] / 2);
 		} else {
-			posZ = 1110;
+			posZ = elevatorWidth / 2 + boxGap * 2 + racksDepth[0] / 2;
+		}
+		if (double == true) {
+			posZ = posZ + depth / 2;
+			// posZ[1] = -(posZ + depth / 2);
 		}
 
-		if (objs[i].floor === 1) {
-			posY = json.height[0] / 2;
-		} else if (objs[i] === 2) {
-			posY = json.height[0] / 2 + json.height[0] + boxGap;
+		if (objs[i].floor === "1") {
+			posY = height / 2;
+		} else if (objs[i].floor === "2") {
+			posY = height / 2 + racksHeight[0] + boxGap;
 		} else {
-			posY = json.height[0] / 2 + json.height[0] * 2 + boxGap * 2;
+			posY = height / 2 + racksHeight[0] * 2 + boxGap * 2;
 		}
 
-		// let posX = (racksDepth[objs[i].rackNum - 1] / rackCell) * objs[i].array - (racksDepth[objs[i].rackNum - 1] / rackCell) * 0.5 + racksDepth[0] * (objs[i].rackNum - 1) + racksGap * objs[i].rackNum;
-		let posX = 0;
+		posX = racksWidth[0] * objs[i].num - 1 + (racksWidth[0] / 5 - boxGap) * objs[i].cell - boxGap * 2;
+
 		if (objs[i].type !== "N") {
 			let box = {
 				geometry: new THREE.BoxGeometry(width, height, depth),
 				material: new THREE.MeshStandardMaterial({ color: `#${color}` }),
-				posX,
+				posX: posX - (racksWidth[0] - width / 2),
 				posY,
 				posZ,
 			};
@@ -294,11 +232,23 @@ const getBoxes = function () {
 
 	for (let i = 0; i < boxes.length; i++) {
 		let mesh = new THREE.Mesh(boxes[i].geometry, boxes[i].material);
-		scene.add(mesh);
+		mesh.position.set(boxes[i].posX, boxes[i].posY, boxes[i].posZ);
+		boxGroup.add(mesh);
 		meshes.push(mesh);
 	}
 };
 
+// Camera
+const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 10, 1000000);
+camera.position.set(20000, 10000, -20000);
+
+// Controls
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.enablePan = false; // controls off
+controls.enableKeys = false;
+// controls.minZoom = 0;
+// controls.maxZoom = 2;
 
 window.addEventListener("resize", () => {
 	// Update sizes
@@ -313,19 +263,6 @@ window.addEventListener("resize", () => {
 	renderer.setSize(sizes.width, sizes.height);
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
-
-// Camera
-const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 10, 1000000);
-camera.position.set(20000, 10000, -20000);
-// camera.lookAt(0, 0, 0);
-
-// Controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.enablePan = false; // controls off
-controls.enableKeys = false;
-// controls.minZoom = 0;
-// controls.maxZoom = 2;
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
@@ -346,7 +283,7 @@ function animate() {
 	controls.update();
 
 	renderer.render(scene, camera);
-	// labelRenderer.render(scene, camera);
+	labelRenderer.render(scene, camera);
 }
 
 requestAnimationFrame(animate);
